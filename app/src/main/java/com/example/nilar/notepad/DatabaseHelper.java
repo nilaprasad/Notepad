@@ -2,8 +2,12 @@ package com.example.nilar.notepad;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper
 {
@@ -56,5 +60,56 @@ public class DatabaseHelper extends SQLiteOpenHelper
         db.close();
 
         return id;
+    }
+
+    public Note getNote(long id)
+    {
+        // get readable database as we are not inserting anything
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(Note.TABLE_NAME,
+                new String[]{Note.COLUMN_ID, Note.COLUMN_NOTE, Note.COLUMN_TIMESTAMP},
+                Note.COLUMN_ID + "=?",
+                new String[]{String.valueOf(id)},null, null, null, null);
+
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        // prepare note object
+        Note note = new Note(
+                cursor.getInt(cursor.getColumnIndex(Note.COLUMN_ID)),
+                cursor.getString(cursor.getColumnIndex(Note.COLUMN_NOTE)),
+                cursor.getString(cursor.getColumnIndex(Note.COLUMN_TIMESTAMP)));
+
+        cursor.close();
+
+        return note;
+    }
+
+    public List<Note> getAllNotes()
+    {
+        List<Note> notes = new ArrayList<>();
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + Note.TABLE_NAME + "ORDER BY " + Note.COLUMN_TIMESTAMP + " DESC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst())
+        {
+            do {
+                Note note = new Note();
+                note.setId(cursor.getInt(cursor.getColumnIndex(Note.COLUMN_ID)));
+                note.setNote(cursor.getString(cursor.getColumnIndex(Note.COLUMN_NOTE)));
+                note.setNote(cursor.getString(cursor.getColumnIndex(Note.COLUMN_TIMESTAMP)));
+
+                notes.add(note);
+            } while (cursor.moveToNext());
+        }
+
+        db.close();
+
+        return notes;
     }
 }
