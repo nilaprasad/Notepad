@@ -112,4 +112,37 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
         return notes;
     }
+
+    public int getNotesCount()
+    {
+        String countQuery = "SELECT * FROM " + Note.TABLE_NAME;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+
+        int count = cursor.getCount();
+        cursor.close();
+
+        return count;
+    }
+
+    public int updateNote(Note note)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(Note.COLUMN_ID, note.getNote());
+
+        //Updating row
+        return db.update(Note.TABLE_NAME, values, Note.COLUMN_ID + " =?",
+                new String[]{String.valueOf(note.getId())});
+    }
+
+    public void deleteNote(Note note)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(Note.TABLE_NAME, Note.COLUMN_ID + " =?",
+                new String[]{String.valueOf(note.getId())});
+        db.close();
+    }
+
 }
